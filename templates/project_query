@@ -1,0 +1,108 @@
+Login:
+
+SELECT dep_id, dep_name
+FROM department
+WHERE username = **input_username** AND password = **input_password**
+
+Return the dep_id and the name string
+
+
+
+
+You may use this nonsense stuff, intuitively?
+
+SELECT item_name
+FROM item_category
+WHERE item_category_id = **iid_input**
+
+SELECT item_category_id
+FROM item_category
+WHERE item_name = **iname_input**
+
+Invoice
+
+Generate all the invoices
+ (Do you want to restrict the legit invoice accessable by this? It's on you)
+given dept_id = did_input
+
+SELECT invoice_id, min(date) as date
+FROM invoices
+WHERE dept_id = 1
+GROUP BY invoice_id
+
+
+
+Generate a summary of an invoice
+given invoice_id = i_id:
+
+SELECT C.item_category_id AS item_id,
+item_name, price_at AS price,
+quantity,
+from_supplier_id AS supplier_id
+FROM item_category C JOIN invoices_items I ON C.item_category_id = I.item_category_id
+Where Invoice_ID = 17;
+
+
+
+Generate the total price spent of
+given invoice_id = i_id:
+
+SELECT SUM(Quantity * price_at) AS Balance
+FROM item_category C JOIN invoices_items I ON C.item_category_id = I.item_category_id
+Where invoice_id = 1;
+
+
+
+Generate the total price spent by this dept
+dept_id = did_input
+
+WITH invoice_id_list AS
+(SELECT invoice_id
+FROM invoices
+WHERE dept_id = 1)
+SELECT SUM(Balance)
+FROM (SELECT SUM(Quantity * price_at) AS Balance
+      FROM item_category C JOIN invoices_items I ON C.item_category_id = I.item_category_id
+      Where invoice_id IN (SELECT * FROM invoice_id_list));
+
+
+
+Generate specific department’s price record of specific item category over time,
+given both id
+dep_id = did_input
+item_id = iid_input
+
+SELECT date, price_at
+FROM invoices_items T JOIN invoices I ON T.invoice_id = I.invoice_id
+WHERE dept_id = 2 AND item_category_id = 2
+ORDER BY date DESC;
+
+
+
+Generate a department's spending on each items
+given dept_id = did_input
+
+WITH invoice_id_list AS
+(SELECT invoice_id
+FROM invoices
+WHERE dept_id = 2
+),
+item_history AS(
+SELECT item_category_id, price_at, quantity
+FROM invoices_items
+WHERE invoice_id IN (SELECT * FROM invoice_id_list)
+)
+SELECT item_name, C.item_category_id, SUM(Quantity * price_at)
+FROM item_category C JOIN item_history H ON C.item_category_id = H.item_category_id
+GROUP BY C.item_category_id
+
+
+Supplier info with a item_category_id = iid_input
+
+WITH supplier_id_list AS
+(SELECT supplier_id
+ FROM supplier_item
+ WHERE item_category_id = 1)
+SELECT S.supplier_id, S.supplier_name, A.address_string, A.zip_code
+FROM suppliers S JOIN addresses A ON S.supplier_id = A.supplier_id
+WHERE S.supplier_id IN (SELECT * FROM supplier_id_list)
